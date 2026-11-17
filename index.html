@@ -509,8 +509,8 @@ var T = {
   fixErr:'صحّح الحقول المعلَّمة بالأحمر ثم اضغط احسب.',
   e:{required:'هذا الحقل مطلوب.',nan:'أدخل رقماً صحيحاً، مثل 2.8',range:'القيمة خارج النطاق المسموح ({a} – {b}).',height_low:'السقف منخفض جداً مقارنة بارتفاع مستوى العمل.'},
   v3d:'ثلاثي الأبعاد',loading3d:'جارٍ تجهيز العرض ثلاثي الأبعاد…',no3d:'العرض ثلاثي الأبعاد غير متاح في هذا المتصفح أو تعذّر تحميله. استخدم المنظور أو المسقط.',
-  camFront:'من الأمام',camCorner:'من الزاوية',camTop:'من الأعلى',camIn:'من داخل الغرفة',hqOn:'الظلال: تعمل',hqOff:'الظلال: متوقفة',
-  hint3d:'اسحب لتدوير الغرفة، واستخدم عجلة الفأرة أو إصبعين للتكبير. للتعديل وسحب العناصر ارجع إلى مسقط السقف. إذا كان العرض بطيئاً على جهازك أوقف الظلال.',
+  camFront:'من الأمام',camCorner:'من الزاوية',camTop:'من الأعلى',camIn:'من داخل الغرفة',hqOn:'الظلال: تعمل',hqOff:'الظلال: متوقفة',q3Fast:'العرض: سريع',q3Full:'العرض: دقة عالية',q3Auto:'خُفّضت دقة العرض تلقائياً ليبقى سريعاً على هذا الجهاز.',
+  hint3d:'اسحب لتدوير الغرفة، واستخدم عجلة الفأرة أو إصبعين للتكبير. للتعديل وسحب العناصر ارجع إلى مسقط السقف. إذا كان العرض بطيئاً اختر «العرض: سريع» وأوقف الظلال.',
   cap3d:'عرض ثلاثي الأبعاد تفاعلي. الإضاءة فيه مرسومة بمصابيح افتراضية بزاوية العدسة واللومن المدخلين، وهي تقريبية للتوضيح وليست محاكاة ضوئية دقيقة.',
   beamLbl:'فتحة العدسة (Beam angle)',beamHint:'قطر بقعة الضوء ≈ {wp} م على مستوى العمل و{fl} م على الأرض. الزاوية لا تغيّر متوسط الإضاءة المحسوب، لكنها تحدد توزيعه: الضيقة تركّز الضوء، والواسعة تنشره.',
   beamErr:'أدخل زاوية بين 10° و120°.',beamFact:'فتحة العدسة',spotFact:'قطر البقعة على مستوى العمل',
@@ -598,8 +598,8 @@ var T = {
   fixErr:'Fix the fields marked in red, then press Calculate.',
   e:{required:'This field is required.',nan:'Enter a valid number, e.g. 2.8',range:'Value is outside the allowed range ({a} – {b}).',height_low:'The ceiling is too low for the working plane height.'},
   v3d:'3D view',loading3d:'Preparing the 3D view…',no3d:'The 3D view is not available in this browser or failed to load. Use the room view or the ceiling plan.',
-  camFront:'Front',camCorner:'Corner',camTop:'Top',camIn:'Inside the room',hqOn:'Shadows: on',hqOff:'Shadows: off',
-  hint3d:'Drag to rotate the room; use the mouse wheel or two fingers to zoom. To edit or move items, go back to the ceiling plan. If the view is slow on your device, turn shadows off.',
+  camFront:'Front',camCorner:'Corner',camTop:'Top',camIn:'Inside the room',hqOn:'Shadows: on',hqOff:'Shadows: off',q3Fast:'View: fast',q3Full:'View: high detail',q3Auto:'Detail was lowered automatically to keep the view smooth on this device.',
+  hint3d:'Drag to rotate the room; use the mouse wheel or two fingers to zoom. To edit or move items, go back to the ceiling plan. If the view is slow, choose "View: fast" and turn shadows off.',
   cap3d:'Interactive 3D view. Lights use virtual lamps with the entered beam angle and lumens; they are approximate, not a photometric simulation.',
   beamLbl:'Beam angle',beamHint:'Spot diameter ≈ {wp} m at the working plane and {fl} m on the floor. The angle does not change the calculated average light, only how it is spread: narrow focuses, wide spreads.',
   beamErr:'Enter an angle from 10° to 120°.',beamFact:'Beam angle',spotFact:'Spot at working plane',
@@ -1907,11 +1907,12 @@ function ensureRenderer(){
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setPixelRatio(dpr3(false));
   renderer.shadowMap.enabled = HQ3; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = false; // shadows only change when the room changes, not when the camera moves
   var wrap = document.createElement('div'); wrap.className = 'three-wrap';
   var bar = document.createElement('div'); bar.className = 'three-bar';
-  bar.innerHTML = '<button type="button" class="sw" id="cam-front"></button><button type="button" class="sw" id="cam-corner"></button><button type="button" class="sw" id="cam-top"></button><button type="button" class="sw" id="cam-in"></button><button type="button" class="sw" id="cam-hq"></button>';
+  bar.innerHTML = '<button type="button" class="sw" id="cam-front"></button><button type="button" class="sw" id="cam-corner"></button><button type="button" class="sw" id="cam-top"></button><button type="button" class="sw" id="cam-in"></button><button type="button" class="sw" id="cam-hq"></button><button type="button" class="sw" id="cam-q"></button>';
   var hint = document.createElement('p'); hint.className = 'three-hint'; hint.id = 'three-hint';
   wrap.appendChild(canvas); wrap.appendChild(bar); wrap.appendChild(hint);
   three = { renderer: renderer, canvas: canvas, wrap: wrap, scene: null, camera: new THREE.PerspectiveCamera(50, 1.5, 0.05, 60), target: new THREE.Vector3() };
@@ -1924,6 +1925,10 @@ function ensureRenderer(){
     HQ3 = !HQ3; try { localStorage.setItem('luxcalc-hq', HQ3 ? '1' : '0'); } catch(e){}
     renderer.shadowMap.enabled = HQ3; if (last && last.ok) build3D(last, lastLay);
   });
+  bar.querySelector('#cam-q').addEventListener('click', function(){
+    Q3 = Q3 > 0 ? 0 : 1; Q3auto = false; try { localStorage.setItem('luxcalc-q3', Q3 ? 'fast' : 'full'); } catch(e){}
+    renderer.setPixelRatio(dpr3(false)); if (last && last.ok) build3D(last, lastLay);
+  });
   window.addEventListener('resize', function(){ if (vizMode === '3d') { size3(); render3(); } });
   return three;
 }
@@ -1932,8 +1937,13 @@ function size3(){
   three.renderer.setSize(w, h, false); three.canvas.style.width = '100%'; three.canvas.style.height = h + 'px';
   three.camera.aspect = w / h; three.camera.updateProjectionMatrix();
 }
-function render3(){
+var r3Pending = false;
+function render3(now){
   if (!three || !three.scene) return;
+  if (now !== true && three.interacting) { // while a finger/mouse is dragging: at most one frame per screen refresh
+    if (!r3Pending) { r3Pending = true; requestAnimationFrame(function(){ r3Pending = false; render3(true); }); }
+    return;
+  }
   // things fixed to a wall are hidden while that wall is see-through (camera outside it)
   var c = three.camera.position, hl = last ? last.length / 2 : 0, hw = last ? last.width / 2 : 0;
   three.scene.children.forEach(function(o){
@@ -1963,7 +1973,9 @@ function place3(){
 function bindOrbit(cv){
   var ptrs = {}, last2 = null;
   function dist2(){ var k = Object.keys(ptrs); if (k.length < 2) return null; var a = ptrs[k[0]], b = ptrs[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
-  cv.addEventListener('pointerdown', function(e){ ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; try { cv.setPointerCapture(e.pointerId); } catch(x){} last2 = dist2(); cv.classList.add('grabbing'); });
+  cv.addEventListener('pointerdown', function(e){
+    if (!three.interacting) { three.interacting = true; if (dpr3(true) < dpr3(false)) { three.renderer.setPixelRatio(dpr3(true)); size3(); } }
+    ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; try { cv.setPointerCapture(e.pointerId); } catch(x){} last2 = dist2(); cv.classList.add('grabbing'); });
   cv.addEventListener('pointermove', function(e){
     var p = ptrs[e.pointerId]; if (!p) return;
     var n = Object.keys(ptrs).length;
@@ -1975,7 +1987,10 @@ function bindOrbit(cv){
     if (n >= 2) { var d2 = dist2(); if (last2 && d2) zoom3(last2 / d2); last2 = d2; }
     place3();
   });
-  function up(e){ delete ptrs[e.pointerId]; last2 = dist2(); if (!Object.keys(ptrs).length) cv.classList.remove('grabbing'); }
+  function up(e){ delete ptrs[e.pointerId]; last2 = dist2();
+    if (!Object.keys(ptrs).length) { cv.classList.remove('grabbing');
+      if (three.interacting) { three.interacting = false; if (three.renderer.getPixelRatio() !== dpr3(false)) { three.renderer.setPixelRatio(dpr3(false)); size3(); } render3(true); } } // sharp again when the finger lifts
+  }
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   cv.addEventListener('wheel', function(e){ e.preventDefault(); zoom3(e.deltaY > 0 ? 1.1 : 1 / 1.1); place3(); }, { passive: false });
   cv.addEventListener('keydown', function(e){
@@ -2002,8 +2017,17 @@ function stripeTexture(base, line, horizontal, stepPx){
 }
 var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 var IS_APP_PHONE = !!window.LuxAndroid || (!!window.LUXCALC_PWA && window.matchMedia && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 700); // installed app on a phone
+var TOUCH3 = IS_IOS || !!window.LuxAndroid || !!(window.matchMedia && matchMedia('(pointer: coarse)').matches); // tablets and phones
+// 3D quality: 0 = high detail (computers), 1 = fast (tablets/phones), 2 = fastest (chosen automatically when 1 is still slow)
+var Q3CFG = [ { spots: 28, points: 28, dpr: 2, dragDpr: 2, phys: true, cones: 2, shadows: 6 },
+              { spots: 8, points: 4, dpr: 1.5, dragDpr: 1, phys: false, cones: 1, shadows: 2 },
+              { spots: 4, points: 2, dpr: 1, dragDpr: 0.75, phys: false, cones: 0, shadows: 1 } ];
+var Q3 = TOUCH3 ? 1 : 0, Q3auto = false;
+try { var q3s = localStorage.getItem('luxcalc-q3'); if (q3s === 'full') Q3 = 0; else if (q3s === 'fast') Q3 = 1; } catch(e){}
+function q3(){ return Q3CFG[Q3]; }
+function dpr3(drag){ return Math.min(drag ? q3().dragDpr : q3().dpr, window.devicePixelRatio || 1); }
 var TEX3 = null, HQ3 = true;
-try { var hqS = localStorage.getItem('luxcalc-hq'); HQ3 = hqS === null ? !IS_APP_PHONE : hqS !== '0'; } catch(e){} // phones start with shadows off; the button turns them on
+try { var hqS = localStorage.getItem('luxcalc-hq'); HQ3 = hqS === null ? !TOUCH3 : hqS !== '0'; } catch(e){} // tablets and phones start with shadows off; the button turns them on
 function rnd3(seed){ var x = seed >>> 0 || 1; return function(){ x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; }; }
 function canvasTex(size, draw, keepRepeat){
   var c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size);
@@ -2242,7 +2266,9 @@ function build3D(r, lay){
   th.wrap.querySelector('#cam-in').textContent = t.camIn;
   th.wrap.querySelector('#cam-hq').textContent = HQ3 ? t.hqOn : t.hqOff;
   th.wrap.querySelector('#cam-hq').setAttribute('aria-pressed', HQ3);
-  th.wrap.querySelector('#three-hint').textContent = t.hint3d;
+  th.wrap.querySelector('#cam-q').textContent = Q3 ? t.q3Fast : t.q3Full;
+  th.wrap.querySelector('#cam-q').setAttribute('aria-pressed', Q3 > 0);
+  th.wrap.querySelector('#three-hint').textContent = t.hint3d + (Q3auto ? ' ' + t.q3Auto : '');
   th.canvas.setAttribute('aria-label', t.v3d);
   dispose3(th.scene);
   var T3 = THREE, sc = new T3.Scene(), L = r.length, W = r.width, H = r.height;
@@ -2276,8 +2302,9 @@ function build3D(r, lay){
   else ceilM = std(ceilCol);
   var fty3 = floorType(), ftex = { wood: TX.floor, marble: TX.marble, tiles: TX.tiles, carpet: TX.carpet }[fty3], tile = { wood: 2, marble: 2.4, tiles: 1.2, carpet: 1 }[fty3];
   ftex.repeat.set(L / tile, W / tile);
-  var floorM = new T3.MeshPhysicalMaterial({ color: '#ffffff', map: ftex, roughness: { wood: 0.42, marble: 0.12, tiles: 0.3, carpet: 1 }[fty3], metalness: 0,
-    clearcoat: { wood: 0.35, marble: 0.8, tiles: 0.5, carpet: 0 }[fty3], clearcoatRoughness: { wood: 0.25, marble: 0.06, tiles: 0.15, carpet: 1 }[fty3], envMapIntensity: fty3 === 'marble' ? 1.6 : 1 });
+  var floorM = new T3[q3().phys ? 'MeshPhysicalMaterial' : 'MeshStandardMaterial'](q3().phys ? { color: '#ffffff', map: ftex, roughness: { wood: 0.42, marble: 0.12, tiles: 0.3, carpet: 1 }[fty3], metalness: 0,
+    clearcoat: { wood: 0.35, marble: 0.8, tiles: 0.5, carpet: 0 }[fty3], clearcoatRoughness: { wood: 0.25, marble: 0.06, tiles: 0.15, carpet: 1 }[fty3], envMapIntensity: fty3 === 'marble' ? 1.6 : 1 }
+    : { color: '#ffffff', map: ftex, roughness: { wood: 0.45, marble: 0.2, tiles: 0.32, carpet: 1 }[fty3], metalness: 0, envMapIntensity: fty3 === 'marble' ? 1.6 : 1 }); // no clear-coat layer in fast mode
   mats.push(floorM); plane(L, W, floorM, V(L / 2, W / 2, 0), 'up');
   // soft ground shadow under the room (visible from outside)
   var shc = document.createElement('canvas'); shc.width = shc.height = 128; var shg = shc.getContext('2d'), shr = shg.createRadialGradient(64, 64, 20, 64, 64, 64);
@@ -2335,7 +2362,7 @@ function build3D(r, lay){
   });
   var lm3 = 0; // lumens of every virtual lamp, for auto exposure
   var hemi = new T3.HemisphereLight(0xffffff, new T3.Color(ROOM3.floor), 1); sc.add(hemi);
-  var nLights = 0, MAXL = 28, nShadow = 0;
+  var nLights = 0, MAXL = 28, nShadow = 0, nPts = 0, Q = q3(), fixLights = [];
   // fixtures with real spot lights using the beam angle
   if (scene.fixOn) {
     var sh = SHAPES[decor.shape], glow = CCT[decor.cct], half = decor.beam * Math.PI / 360;
@@ -2374,21 +2401,24 @@ function build3D(r, lay){
         body.position.copy(V(p.x, p.y, zf - 0.012)); sc.add(body);
         sprite(glow, Math.max(sh.w, sh.d) * (decor.type === 'cob' ? 2.2 : 1.8) + 0.12, V(p.x, p.y, zf - 0.03), 0.75);
       }
-      var em3 = fixEmitters(3), hc = Math.min(half, 1.45), rad = Math.min(zf * Math.tan(half), Math.max(L, W));
-      if (em3.length * lay.points.length > MAXL) em3 = [{ dx: 0, f: 1 }]; // light budget: too many fixtures -> one lamp each, for every fixture alike
-      var cM = em3.length > 1 ? coneM.clone() : coneM; if (em3.length > 1) cM.opacity = coneM.opacity / Math.pow(em3.length, 0.6);
-      em3.forEach(function(e, k){ // one spot light (and beam cone) per head / per section of the linear panel
-        var ex = p.x + e.dx;
-        if (nLights < MAXL) {
-          var sp = new T3.SpotLight(glow, 1, 0, hc, 0.5, 2);
-          sp.intensity = r.lumensPerFixture * e.f / (2 * Math.PI * (1 - Math.cos(hc))); // candela: this emitter's share of the lumens over the beam
-          lm3 += r.lumensPerFixture * e.f; sp.position.copy(V(ex, p.y, zf - 0.03));
-          if (HQ3 && nShadow < 6 && k === Math.floor(em3.length / 2)) { sp.castShadow = true; sp.shadow.mapSize.set(512, 512); sp.shadow.bias = -0.0006; sp.shadow.normalBias = 0.02; sp.shadow.camera.near = 0.05; nShadow++; }
-          sp.target.position.copy(V(ex, p.y, 0)); sc.add(sp); sc.add(sp.target); nLights++;
-        }
+      var em3 = fixEmitters(3), rad = Math.min(zf * Math.tan(half), Math.max(L, W));
+      if (Q3 > 0 || em3.length * lay.points.length > MAXL) em3 = [{ dx: 0, f: 1 }]; // fast mode / big rooms: one lamp per fixture
+      em3.forEach(function(e){ fixLights.push({ x: p.x + e.dx, y: p.y, z: zf - 0.03, lm: r.lumensPerFixture * e.f, mid: true }); });
+      var coneEm = Q.cones === 0 || (Q3 > 0 && decor.beam > 90) ? [] : Q.cones === 1 ? [{ dx: 0 }] : em3; // wide, faint beam cones are skipped on tablets/phones
+      var cM = coneEm.length > 1 ? coneM.clone() : coneM; if (coneEm.length > 1) cM.opacity = coneM.opacity / Math.pow(coneEm.length, 0.6);
+      coneEm.forEach(function(e){
         var cone = new T3.Mesh(new T3.ConeGeometry(rad, zf, 32, 1, true), cM);
-        cone.position.copy(V(ex, p.y, zf / 2)); sc.add(cone);
+        cone.position.copy(V(p.x + e.dx, p.y, zf / 2)); sc.add(cone);
       });
+    });
+    // real spot lights: one per head/section on computers; on tablets/phones neighbouring fixtures share a lamp (same total lumens)
+    cluster3(fixLights, Math.min(Q.spots, MAXL), L, W).forEach(function(c){
+      var hc = Math.min(1.45, half + Math.atan(c.spread / Math.max(0.3, c.z)));
+      var sp = new T3.SpotLight(glow, 1, 0, hc, 0.5, 2);
+      sp.intensity = c.lm / (2 * Math.PI * (1 - Math.cos(hc))); // candela: the lumens spread over the beam
+      lm3 += c.lm; sp.position.copy(V(c.x, c.y, c.z));
+      if (HQ3 && nShadow < Q.shadows) { sp.castShadow = true; sp.shadow.mapSize.set(Q3 ? 256 : 512, Q3 ? 256 : 512); sp.shadow.bias = -0.0006; sp.shadow.normalBias = 0.02; sp.shadow.camera.near = 0.05; nShadow++; }
+      sp.target.position.copy(V(c.x, c.y, 0)); sc.add(sp); sc.add(sp.target); nLights++;
     });
   }
   // hidden LED strip
@@ -2403,12 +2433,12 @@ function build3D(r, lay){
       var m = new T3.Mesh(new T3.PlaneGeometry(e[0], wd), washM); m.rotation.x = Math.PI / 2; m.rotation.z = e[3]; m.position.copy(V(e[1], e[2], zw)); sc.add(m);
     });
     // a softer outward wash on the step face below the cove
-    var per = 2 * (q.w + q.h), nS = Math.min(12, Math.max(4, Math.round(per / 1.2))), lmM = optNum(scene.strip.lm) || 300;
+    var per = 2 * (q.w + q.h), nS = Q3 ? Math.max(1, Math.floor(Q.points / 2)) : Math.min(12, Math.max(4, Math.round(per / 1.2))), lmM = optNum(scene.strip.lm) || 300;
     for (var i = 0; i < nS && nLights < MAXL + 12; i++) {
       var dd = per * (i + 0.5) / nS, x, y;
       if (dd < q.w) { x = q.x + dd; y = q.y; } else if (dd < q.w + q.h) { x = q.x + q.w; y = q.y + dd - q.w; }
       else if (dd < 2 * q.w + q.h) { x = q.x + q.w - (dd - q.w - q.h); y = q.y + q.h; } else { x = q.x; y = q.y + q.h - (dd - 2 * q.w - q.h); }
-      var pl = new T3.PointLight(scene.strip.color, 1, 0, 2); pl.power = lmM * per / nS; lm3 += lmM * per / nS; pl.position.copy(V(x, y, zs - 0.06)); sc.add(pl); nLights++;
+      var pl = new T3.PointLight(scene.strip.color, 1, 0, 2); pl.power = lmM * per / nS; lm3 += lmM * per / nS; pl.position.copy(V(x, y, zs - 0.06)); sc.add(pl); nLights++; nPts++;
     }
   }
   // chandeliers
@@ -2458,8 +2488,8 @@ function build3D(r, lay){
       g.updateMatrixWorld(true);
       g.traverse(function(o2){ if (o2.isMesh && o2.material === bulbM) { var wp = new T3.Vector3(); o2.getWorldPosition(wp); sprite(chColor(), 0.16, wp, 0.7); } });
       sprite(chColor(), Rr * 3.2, V(p.x, p.y, zb + 0.12), 0.35);
-      if (nLights < MAXL + 16) { var pl2 = new T3.PointLight(chColor(), 1, 0, 2); pl2.power = chLm; lm3 += chLm; pl2.position.copy(V(p.x, p.y, zb + 0.1));
-        if (HQ3 && scene.ch.n === 1) { pl2.castShadow = true; pl2.shadow.mapSize.set(256, 256); pl2.shadow.bias = -0.002; pl2.shadow.camera.near = 0.15; }
+      if (nLights < MAXL + 16 && nPts < Q.points) { var pl2 = new T3.PointLight(chColor(), 1, 0, 2); pl2.power = chLm; lm3 += chLm; pl2.position.copy(V(p.x, p.y, zb + 0.1)); nPts++;
+        if (HQ3 && scene.ch.n === 1 && Q3 === 0) { pl2.castShadow = true; pl2.shadow.mapSize.set(256, 256); pl2.shadow.bias = -0.002; pl2.shadow.camera.near = 0.15; }
         sc.add(pl2); nLights++; }
     });
   }
@@ -2567,7 +2597,34 @@ function build3D(r, lay){
   th.target.set(0, H * 0.38, 0);
   var key = L + 'x' + W + 'x' + H; if (cam3.key !== key) { cam3.dist = null; cam3.key = key; }
   if (!cam3.inside && cam3.phi > 1.5) cam3.phi = 1.5;
+  th.renderer.shadowMap.needsUpdate = true;
   size3(); place3();
+  if (Q3 === 1 && !Q3auto) setTimeout(function(){ measure3(th); }, 80);
+}
+// On a tablet/phone in fast mode, time two frames; if the device is still slow, drop to the fastest settings once.
+function measure3(th){
+  if (vizMode !== '3d' || !th.scene || Q3 !== 1 || window.__q3noauto) return;
+  var gl = th.renderer.getContext(), px = new Uint8Array(4), best = 1e9;
+  for (var k = 0; k < 2; k++) { var t0 = performance.now(); th.renderer.render(th.scene, th.camera); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); best = Math.min(best, performance.now() - t0); }
+  if (window.__q3slow) best = 999; // test hook
+  if (best > 45) { Q3 = 2; Q3auto = true; th.renderer.setPixelRatio(dpr3(false)); if (last && last.ok) build3D(last, lastLay); }
+}
+window.__stats3 = function(){ // read-only numbers for the automated tests
+  if (!three || !three.scene) return null; var n = { spots: 0, points: 0, shadows: 0, q: Q3, auto: Q3auto, dpr: three.renderer.getPixelRatio() };
+  three.scene.traverse(function(o){ if (o.isSpotLight) n.spots++; if (o.isPointLight) n.points++; if (o.isLight && o.castShadow) n.shadows++; });
+  return n;
+};
+function cluster3(ls, max, L, W){ // group lamps on a grid until there are at most `max`, keeping total lumens
+  if (ls.length <= max) return ls.map(function(l){ return { x: l.x, y: l.y, z: l.z, lm: l.lm, spread: 0 }; });
+  var gx = Math.max(1, Math.round(Math.sqrt(max * L / W))), gy; gx = Math.min(gx, max); gy = Math.max(1, Math.floor(max / gx));
+  var cells = {};
+  ls.forEach(function(l){ var i = Math.min(gx - 1, Math.floor(l.x / L * gx)), j = Math.min(gy - 1, Math.floor(l.y / W * gy)), k = i + ',' + j; (cells[k] = cells[k] || []).push(l); });
+  return Object.keys(cells).map(function(k){
+    var g = cells[k], lm = 0, x = 0, y = 0, z = 0, sp = 0;
+    g.forEach(function(l){ lm += l.lm; x += l.x * l.lm; y += l.y * l.lm; z += l.z * l.lm; });
+    x /= lm; y /= lm; z /= lm; g.forEach(function(l){ sp = Math.max(sp, Math.hypot(l.x - x, l.y - y)); });
+    return { x: x, y: y, z: z, lm: lm, spread: sp };
+  });
 }
 
 // ---- PDF / print
