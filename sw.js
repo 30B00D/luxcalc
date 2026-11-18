@@ -1,5 +1,5 @@
 /* LuxCalc offline cache. Changing any file changes CACHE, so phones pick up the new version when online. */
-var CACHE = 'luxcalc-1.17.0-ad0a55136e';
+var CACHE = 'luxcalc-1.17.1-ba470bd0d7';
 var FILES = [
 "./",
 "calc.js",
